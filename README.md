@@ -1,9 +1,9 @@
 # polyagent
 
-**Use your Claude, ChatGPT (Codex) and Google AI (Antigravity / Gemini CLI) subscriptions together on one project.** Claude plans, reviews and merges. Codex and Antigravity do the heavy work in parallel. Hard guards stop the waste that usually comes with multi-agent setups.
+**Use your Claude, ChatGPT (Codex) and Google AI (Antigravity / Gemini CLI) subscriptions together on one project.** Your lead agent plans, reviews and merges. Codex and Antigravity do the heavy work in parallel. Hard guards stop the waste that usually comes with multi-agent setups.
 
 ```
-            you ──► Claude (lead, /poly)
+            you ──► the lead (/poly)
                      │  writes tasks.json, reviews summaries, merges
                      ▼
                polyagent run ──► budget · tier→model · recursion lock · timeouts
@@ -14,7 +14,7 @@
         (codex)    (agy)      (codex)      (agy)       (not per tool), so tools never collide
            └──── tests run by polyagent, not by an LLM ────┘
                      ▼
-               Claude reviews → polyagent merge
+               the lead reviews → polyagent merge
 ```
 
 ## Why
@@ -121,7 +121,7 @@ Then, in Claude Code:
 /poly add input validation to every API handler, with tests for each
 ```
 
-Claude writes a task graph. `polyagent plan` shows the routing without calling a model. After you confirm, `polyagent run` executes it, and Claude reviews and merges.
+The lead writes a task graph. `polyagent plan` shows the routing without calling a model. After you confirm, `polyagent run` executes it, and the lead reviews and merges.
 
 ## Dashboard
 
@@ -171,7 +171,7 @@ The web dashboard listens on `127.0.0.1` only, is read-only, rejects requests fr
 | XL | architecture, security | top model, xhigh | Argon high | opus (lead) |
 
 The tier is decided in three layers:
-1. **The lead's estimate.** Claude sets a tier with a reason.
+1. **The lead's estimate.** The lead sets a tier with a reason.
 2. **A cheap heuristic.** File count, lines in scope and risk tags can move it one step up or down. L/XL are never moved down.
 3. **Learning.** After 20+ runs, the ledger's pass rates shift thresholds. If XS keeps passing for a kind of task, similar S work drops to XS; if M keeps failing, it goes to L.
 
@@ -210,7 +210,7 @@ Exit codes: `0` ok, `2` some tasks failed, `3` stopped on budget (`polyagent res
     "codex":  { "weight": 4, "budget": { "windowHours": 5, "maxTasks": 25, "maxTokens": 0 }, "tiers": { "XS": { "model": "…", "effort": "low" } } },
     "agy":    { "weight": 4, "tiers": { … }, "overflowTiers": { … } },
     "gemini": { "weight": 1 },
-    "claude": { "enabled": false }   // headless Claude worker; the lead is Claude anyway
+    "claude": { "enabled": false }   // headless Claude worker; the lead already runs in your session
   }
 }
 ```

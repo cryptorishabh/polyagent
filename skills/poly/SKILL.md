@@ -1,6 +1,6 @@
 ---
 name: poly
-description: Split a coding request into tasks and delegate them in parallel to Codex, Antigravity (agy) and Gemini CLI through polyagent, with Claude planning, reviewing and merging. Use when the user asks to /poly, to "use all my subscriptions", to delegate or parallelise work across Codex/Antigravity/Gemini, or to add many tests or features at once.
+description: Split a coding request into tasks and delegate them in parallel to Codex, Antigravity (agy) and Gemini CLI through polyagent, with the lead planning, reviewing and merging. Use when the user asks to /poly, to "use all my subscriptions", to delegate or parallelise work across Codex/Antigravity/Gemini, or to add many tests or features at once.
 ---
 
 # /poly — lead a polyagent run
