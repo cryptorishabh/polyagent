@@ -123,6 +123,43 @@ Then, in Claude Code:
 
 Claude writes a task graph. `polyagent plan` shows the routing without calling a model. After you confirm, `polyagent run` executes it, and Claude reviews and merges.
 
+## Dashboard
+
+See what's running, where, and how many tokens it has used: in the terminal or in your browser. Open it in a second terminal while `polyagent run` works.
+
+```bash
+polyagent dashboard
+```
+
+```bash
+polyagent dashboard --web --open
+```
+
+```
+polyagent · run 20261108-105517-cqqr · running · 1m 12s
+2 running · 3 passed · 1 pending    tokens this run: 412k
+
+TOOLS   budget used in the current window
+  codex   ██████░░░░░░░░░░░░░░  28%  7/25 tasks    372k this run   ● working (1)
+  agy     ████░░░░░░░░░░░░░░░░  20%  5/25 tasks    40k this run    ● working (1)
+  gemini  █░░░░░░░░░░░░░░░░░░░   5%  2/40 tasks    0 this run      ✖ disabled: account refused
+
+TASKS
+  STATUS      TASK              TIER TOOL · MODEL                   TIME    TOKENS  TRY
+  ▶ running   csv-parse         M    agy · gemini-4-argon-medium    1m 03s  —       1
+      in .polyagent/wt/20261108-105517-cqqr/csv-parse
+  ▶ running   slugify-unicode   S    codex · gpt-6-luna/medium      21s     —       1
+  ✔ passed    add-median        S    codex · gpt-6-luna/medium      36s     101k    1
+```
+
+| | Terminal (`polyagent dashboard`) | Web (`--web`) |
+|---|---|---|
+| Shows | running tasks with tool, model, folder and elapsed time; budget bar and tokens per tool; every task's result and tokens | the same, plus a run picker; works at phone width, light and dark |
+| Refresh | every second | every 2 seconds |
+| Options | `--once` prints a single snapshot (handy in CI or logs) | `--port N` (default 4317; picks a free port if taken), `--open` opens your browser |
+
+The web dashboard listens on `127.0.0.1` only, is read-only, rejects requests from other hostnames, and loads nothing from the internet. Token counts come from what each CLI reports; anything a CLI doesn't report is estimated and marked as such.
+
 ## Model selection
 
 | Tier | Typical work | Codex | agy | Claude (lead's subagents) |
@@ -149,6 +186,7 @@ polyagent doctor [--refresh]         check CLIs, discover models, write tier map
 polyagent plan <tasks.json>          dry run: tiers, providers, models (no model calls)
 polyagent run <tasks.json>           run; prints a compact JSON summary
          [--claude-low]              send lead work to Claude models via agy
+polyagent dashboard [--web] [--once]  live view of tasks, tools and tokens (terminal or local web page)
 polyagent status|resume|merge|clean [runId]
 polyagent ledger                     usage and pass rate per provider/model/tier
 polyagent sync-rules                 copy CLAUDE.md to AGENTS.md and GEMINI.md

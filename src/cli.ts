@@ -7,7 +7,20 @@ import { assertTopLevel } from './guard.ts';
 import { Ledger, loadLearned, saveLearned } from './ledger.ts';
 import { cleanRun, latestRunId, loadState, Runner, summarize } from './runner.ts';
 import { loadTasks, topoOrder } from './tasks.ts';
+import { snapshot } from './dashboard/snapshot.ts';
+import { renderTui, watchTui } from './dashboard/tui.ts';
+import { startWeb } from './dashboard/web.ts';
 import { installClis, planInstall } from './install.ts';
+import { spawn } from 'node:child_process';
+
+function openBrowser(url: string): void {
+  const [cmd, args] = process.platform === 'win32' ? ['cmd', ['/c', 'start', '', url]] : process.platform === 'darwin' ? ['open', [url]] : ['xdg-open', [url]];
+  try {
+    spawn(cmd as string, args as string[], { stdio: 'ignore', detached: true }).unref();
+  } catch {
+    /* user can open the URL by hand */
+  }
+}
 import { resolveBinary } from './proc.ts';
 import { PROVIDERS, type ProviderId, type RunState } from './types.ts';
 
@@ -32,6 +45,9 @@ Usage: polyagent <command> [options]
   run <tasks.json> [--claude-low] [--concurrency N]
                            Run tasks in worktrees; prints a compact JSON summary
   status [runId]           Summary of a run (default: latest)
+  dashboard [runId] [--web [--port N] [--open]] [--once]
+                           Live view of tasks, tools and tokens: in the terminal (default)
+                           or as a local web page (127.0.0.1 only, read-only)
   resume [runId]           Continue a stopped run
   merge [runId] [--tasks a,b]
                            Merge passed task branches into the current branch
@@ -176,6 +192,34 @@ async function main(argv: string[]): Promise<number> {
       const cfg = loadConfig(repo);
       const s = loadState(repo, pickRun(repo, args.shift()));
       print(summarize(repo, s, cfg));
+      return 0;
+    }
+    case 'dashboard': {
+      const web = flag(args, '--web');
+      const once = flag(args, '--once');
+      const open = flag(args, '--open');
+      const port = Number(opt(args, '--port') ?? 4317);
+      const runArg = args.shift();
+      // Config is re-read each refresh so budget edits show up live.
+      const get = (id?: string) => snapshot(repo, loadConfig(repo), id ?? runArg);
+      if (web) {
+        let started;
+        try {
+          started = await startWeb(get, port);
+        } catch (e) {
+          if ((e as NodeJS.ErrnoException).code !== 'EADDRINUSE') throw e;
+          started = await startWeb(get, 0);
+        }
+        process.stderr.write(`polyagent dashboard: ${started.url}  (local only, read-only; Ctrl+C to stop)\n`);
+        if (open) openBrowser(started.url);
+        await new Promise(() => {});
+      }
+      if (once) {
+        console.log(renderTui(get(), { color: !process.env.NO_COLOR && !!process.stdout.isTTY, width: process.stdout.columns ?? 100 }));
+        return 0;
+      }
+      watchTui(() => get());
+      await new Promise(() => {});
       return 0;
     }
     case 'resume': {

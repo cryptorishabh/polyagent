@@ -243,6 +243,7 @@ export class Runner {
     const n = ts.attempts.length + 1;
     const adapter = this.adapters[p];
     ts.status = 'running';
+    ts.current = { attempt: n, provider: p, model: route.model, effort: route.effort, tier: route.tier, startedAt: new Date().toISOString(), overflow: route.overflow || undefined };
     ts.lastProvider = p;
     this.busy.add(p);
     this.budget.begin(p);
@@ -330,6 +331,7 @@ export class Runner {
       if (e instanceof GitError && /conflicts/.test(note)) r.exclude = new Set(['codex', 'agy', 'gemini', 'claude']);
     } finally {
       this.busy.delete(p);
+      delete ts.current;
       this.budget.end(p);
     }
 

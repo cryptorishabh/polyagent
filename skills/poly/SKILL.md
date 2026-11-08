@@ -63,7 +63,7 @@ How to split:
 Run `polyagent plan .polyagent/tasks/<name>.json`. It calls no model. Show the user a short table: task, tier, provider, model. Ask before running if there are more than 6 tasks or any L/XL worker task. Otherwise go ahead.
 
 ## 3. Run
-`polyagent run .polyagent/tasks/<name>.json`. Use the background mode of your shell tool for long runs. It prints one compact JSON summary to stdout. Exit codes: `0` all good, `2` some failed or blocked, `3` stopped on budget.
+`polyagent run .polyagent/tasks/<name>.json`. Use the background mode of your shell tool for long runs. Tell the user they can watch it live in their own terminal with `polyagent dashboard` (or `polyagent dashboard --web --open` for a browser view). Don't poll the dashboard yourself; wait for the run to finish. It prints one compact JSON summary to stdout. Exit codes: `0` all good, `2` some failed or blocked, `3` stopped on budget.
 - If your Claude usage is running low, add `--claude-low`. Lead tasks then go to Claude models on the Google quota through agy.
 - On exit `3`, tell the user which providers are out and that `polyagent resume <run>` will continue later. Nothing is lost.
 

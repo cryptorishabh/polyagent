@@ -152,6 +152,8 @@ export interface TaskState {
   outOfScope?: string[];
   testTail?: string;
   lastProvider?: ProviderId;
+  /** Set while an attempt is running, for live dashboards. */
+  current?: { attempt: number; provider: ProviderId; model?: string; effort?: string; tier: Tier; startedAt: string; overflow?: boolean };
 }
 
 export interface RunState {
