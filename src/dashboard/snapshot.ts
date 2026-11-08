@@ -28,6 +28,8 @@ export interface ProviderRow {
   enabled: boolean;
   /** 0..1 of the budget window. */
   used: number;
+  /** 0..1 of the budget window remaining. */
+  left: number;
   windowHours: number;
   windowTokens: number;
   windowTasks: number;
@@ -106,10 +108,12 @@ export function snapshot(repo: string, cfg: Config, runId?: string, now = Date.n
     const disabled = learned.disabled?.[p];
     const state: ProviderRow['state'] = !pc.enabled ? 'off' : disabled ? 'disabled' : budget.coolingDown(p) ? 'cooling' : running ? 'busy' : 'ok';
     const pe = runEntries.filter((e) => e.provider === p);
+    const used = Math.min(1, u.fraction);
     return {
       id: p,
       enabled: pc.enabled,
-      used: Math.min(1, u.fraction),
+      used,
+      left: Math.max(0, 1 - used),
       windowHours: pc.budget.windowHours,
       windowTokens: u.tokens,
       windowTasks: u.tasks,

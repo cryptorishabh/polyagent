@@ -32,6 +32,10 @@ describe('dashboard', { concurrency: false }, () => {
     assert.equal(b.history.length, 2);
     assert.equal(snap.totals.runTokens, snap.providers.reduce((x, p) => x + p.runTokens, 0));
     assert.ok(snap.providers.find((p) => p.id === 'codex')!.runTasks >= 2);
+    for (const p of snap.providers) {
+      assert.equal(typeof p.left, 'number');
+      assert.ok(Math.abs(p.left - Math.max(0, 1 - p.used)) < 1e-9, `${p.id} left matches 1 - used`);
+    }
   });
 
   it('shows running tasks live: where, which model, elapsed time', async () => {
@@ -54,6 +58,9 @@ describe('dashboard', { concurrency: false }, () => {
     assert.match(text, /agy · gemini-argon-medium/);
     assert.match(text, /in \.polyagent\/wt\//);
     assert.match(text, /1m 0[5-9]s/);
+    for (const p of snap.providers) {
+      assert.match(text, new RegExp(`${p.id}.*${Math.round(p.left * 100)}% left`));
+    }
   });
 
   it('terminal view handles "no runs yet" and draws budget bars', () => {
@@ -70,9 +77,13 @@ describe('dashboard', { concurrency: false }, () => {
       assert.match(url, /^http:\/\/127\.0\.0\.1:\d+\/$/);
       const page = await (await fetch(url)).text();
       assert.match(page, /<title>polyagent dashboard<\/title>/);
+      assert.match(page, /% left/);
       const j = await (await fetch(url + 'api/snapshot')).json();
       assert.equal(j.run.id, s.runId);
       assert.equal(j.tasks.length, 3);
+      for (const p of j.providers) {
+        assert.ok(Math.abs(p.left - Math.max(0, 1 - p.used)) < 1e-9);
+      }
       const port = new URL(url).port;
       const status = await new Promise<number>((res, rej) => {
         const r = request({ host: '127.0.0.1', port, path: '/api/snapshot', headers: { host: 'evil.example.com' } }, (x) => res(x.statusCode!));

@@ -61,10 +61,10 @@ h1{font-size:18px;margin:0}h2{font-size:13px;text-transform:uppercase;letter-spa
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
 .kpi b{display:block;font-size:24px;font-variant-numeric:tabular-nums}.kpi span{color:var(--mut);font-size:12px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.prov{display:grid;grid-template-columns:80px 1fr 56px;gap:4px 12px;align-items:center;padding:12px 14px;border-top:1px solid var(--line)}
+.prov{display:grid;grid-template-columns:80px 1fr auto;gap:4px 12px;align-items:center;padding:12px 14px;border-top:1px solid var(--line)}
 .prov:first-child{border-top:0}.prov .meta{grid-column:2/4;color:var(--mut);font-size:12px}
 .track{height:10px;background:var(--track);border-radius:5px;overflow:hidden}.fill{height:100%;border-radius:5px}
-.pct{text-align:right;font-variant-numeric:tabular-nums}
+.pct{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px 12px;border-top:1px solid var(--line);vertical-align:top}
 th{font-size:12px;color:var(--mut);font-weight:600;border-top:0}td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
 .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
@@ -77,7 +77,7 @@ th{font-size:12px;color:var(--mut);font-weight:600;border-top:0}td.n{font-varian
 .banner{margin-top:12px;padding:10px 14px;border-radius:8px;background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
 .wrap{overflow-x:auto}
-@media (max-width:640px){.hide-sm{display:none}.prov{grid-template-columns:64px 1fr 44px}}
+@media (max-width:640px){.hide-sm{display:none}.prov{grid-template-columns:64px 1fr auto}}
 </style></head><body><main>
 <header><div><h1>polyagent</h1><div class="sub" id="runline">loading…</div></div>
 <label class="sub">run <select id="run"></select></label></header>
@@ -106,7 +106,7 @@ function render(s){
   $('banner').innerHTML=s.run.stopped?'<div class="banner">'+esc(s.run.stopped)+' — continue later with <span class="mono">polyagent resume '+esc(s.run.id)+'</span></div>':'';
   const c=s.counts,done=(c.passed||0)+(c.merged||0);
   $('kpis').innerHTML=[[c.running||0,'running'],[done+' / '+s.tasks.length,'passed'],[(c.failed||0)+(c.blocked||0),'failed or blocked'],[tok(s.totals.runTokens),'tokens this run'+(s.totals.estimated?' (some estimated)':'')]].map(k=>'<div class="kpi"><b>'+esc(k[0])+'</b><span>'+esc(k[1])+'</span></div>').join('');
-  $('provs').innerHTML=s.providers.map(p=>'<div class="prov"><b>'+esc(p.id)+'</b><div class="track" role="progressbar" aria-valuenow="'+Math.round(p.used*100)+'" aria-valuemin="0" aria-valuemax="100" aria-label="'+esc(p.id)+' budget used"><div class="fill" style="width:'+(p.used*100).toFixed(1)+'%;background:'+color(p.used)+'"></div></div><div class="pct">'+Math.round(p.used*100)+'%</div><div class="meta">'+stateLabel(p)+' · '+p.windowTasks+(p.maxTasks?'/'+p.maxTasks:'')+' tasks in '+p.windowHours+'h window · '+tok(p.runTokens)+' tokens this run ('+p.runTasks+' attempts)</div></div>').join('');
+  $('provs').innerHTML=s.providers.map(p=>'<div class="prov"><b>'+esc(p.id)+'</b><div class="track" role="progressbar" aria-valuenow="'+Math.round(p.used*100)+'" aria-valuemin="0" aria-valuemax="100" aria-label="'+esc(p.id)+' budget used"><div class="fill" style="width:'+(p.used*100).toFixed(1)+'%;background:'+color(p.used)+'"></div></div><div class="pct">'+Math.round(p.used*100)+'% <span class="small">· '+Math.round(p.left*100)+'% left</span></div><div class="meta">'+stateLabel(p)+' · '+p.windowTasks+(p.maxTasks?'/'+p.maxTasks:'')+' tasks in '+p.windowHours+'h window · '+tok(p.runTokens)+' tokens this run ('+p.runTasks+' attempts)</div></div>').join('');
   const rows=[...s.tasks].sort((a,b)=>ORDER.indexOf(a.status)-ORDER.indexOf(b.status));
   $('tasks').innerHTML=rows.map(t=>{const tool=t.provider?esc(t.provider)+' · <span class="mono">'+esc(t.model||'default')+(t.effort?'/'+esc(t.effort):'')+'</span>':t.status==='lead'?'Claude (lead)':'—';
     return '<tr title="'+esc(t.summary||'')+'"><td><span class="pill s-'+esc(t.status)+'">'+esc(t.status)+'</span></td><td><b>'+esc(t.id)+'</b>'+(t.summary?'<div class="small">'+esc(t.summary.slice(0,140))+'</div>':'')+'</td><td>'+esc(t.tier)+'</td><td>'+tool+'</td><td class="hide-sm mono">'+esc(t.where||'—')+'</td><td class="n">'+(t.elapsedMs?dur(t.elapsedMs):'—')+'</td><td class="n">'+(t.tokens?tok(t.tokens):'—')+'</td><td class="n hide-sm">'+(t.attempt||'—')+'</td></tr>'}).join('');
