@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "description": "Claude-led delegator that spreads coding work across your Claude, Codex and Antigravity/Gemini subscriptions with hard budget, recursion and model-tier guards.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cryptorishabh/polyagent.git"
+  },
+  "homepage": "https://github.com/cryptorishabh/polyagent#readme",
+  "bugs": "https://github.com/cryptorishabh/polyagent/issues",
   "type": "module",
   "bin": {
     "polyagent": "dist/cli.js"

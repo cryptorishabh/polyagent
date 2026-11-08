@@ -47,7 +47,7 @@ npm i -g polyagent
 Then add the `/poly` skill to Claude Code:
 
 ```bash
-claude plugin marketplace add <github-user>/polyagent
+claude plugin marketplace add cryptorishabh/polyagent
 ```
 
 ```bash
