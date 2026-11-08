@@ -1,0 +1,40 @@
+{
+  "name": "polyagent",
+  "version": "0.1.0",
+  "description": "Claude-led delegator that spreads coding work across your Claude, Codex and Antigravity/Gemini subscriptions with hard budget, recursion and model-tier guards.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "polyagent": "dist/cli.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "schema",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.6"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --experimental-strip-types --no-warnings --test \"test/**/*.test.ts\"",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "codex",
+    "gemini",
+    "antigravity",
+    "multi-agent",
+    "orchestrator",
+    "delegation"
+  ],
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}

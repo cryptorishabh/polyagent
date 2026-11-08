@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "polyagent worker result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "summary", "files_changed", "tests_run", "notes"],
+  "properties": {
+    "status": { "type": "string", "enum": ["done", "partial", "blocked"] },
+    "summary": { "type": "string", "description": "What you changed and why, at most 600 characters." },
+    "files_changed": { "type": "array", "items": { "type": "string" } },
+    "tests_run": { "type": "string", "description": "Command(s) you ran and the result, or 'none'." },
+    "notes": { "type": "string", "description": "Risks, follow-ups or why you are blocked. At most 400 characters." }
+  }
+}

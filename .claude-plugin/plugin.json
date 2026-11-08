@@ -1,0 +1,7 @@
+{
+  "name": "polyagent",
+  "version": "0.1.0",
+  "description": "Claude leads; Codex, Antigravity and Gemini CLI do the work in parallel worktrees with budget, recursion and model-tier guards.",
+  "license": "MIT",
+  "keywords": ["delegation", "codex", "antigravity", "gemini", "multi-agent", "parallel"]
+}

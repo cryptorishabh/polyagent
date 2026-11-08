@@ -1,0 +1,11 @@
+{
+  "name": "polyagent",
+  "owner": { "name": "polyagent contributors" },
+  "plugins": [
+    {
+      "name": "polyagent",
+      "source": "./",
+      "description": "/poly: Claude-led delegation across Claude, Codex and Antigravity/Gemini subscriptions."
+    }
+  ]
+}
