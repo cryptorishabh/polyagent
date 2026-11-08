@@ -11,6 +11,7 @@ import { snapshot } from './dashboard/snapshot.ts';
 import { renderTui, watchTui } from './dashboard/tui.ts';
 import { startWeb } from './dashboard/web.ts';
 import { installClis, planInstall } from './install.ts';
+import { quotaRows, renderQuota } from './quota.ts';
 import { spawn } from 'node:child_process';
 
 function openBrowser(url: string): void {
@@ -53,6 +54,7 @@ Usage: polyagent <command> [options]
                            Merge passed task branches into the current branch
   clean [runId] [--force]  Remove worktrees (and merged branches; --force: all branches)
   ledger [--json]          Usage per provider, model and tier
+  quota [--json]           Polyagent budget left in the current window
   sync-rules [--from CLAUDE.md] [--force]
                            Copy project rules to AGENTS.md and GEMINI.md
 
@@ -262,6 +264,12 @@ async function main(argv: string[]): Promise<number> {
       const force = flag(args, '--force');
       const s = loadState(repo, pickRun(repo, args.shift()));
       print({ removed: cleanRun(repo, s, force) });
+      return 0;
+    }
+    case 'quota': {
+      const rows = quotaRows(repo, loadConfig(repo));
+      if (flag(args, '--json')) print(rows);
+      else console.log(renderQuota(rows));
       return 0;
     }
     case 'ledger': {
