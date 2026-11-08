@@ -18,6 +18,8 @@ export class BudgetTracker {
   private now: () => number;
   /** Workers started but not yet in the ledger. Counted so parallel starts cannot overshoot. */
   private inflight = new Map<ProviderId, number>();
+  /** Not installed on this machine. In memory only: installing the CLI fixes it on the next run. */
+  private missing = new Set<ProviderId>();
 
   constructor(cfg: Config, ledger: Ledger, learned: Learned, now: () => number = Date.now) {
     this.cfg = cfg;
@@ -48,6 +50,7 @@ export class BudgetTracker {
   canStart(p: ProviderId): boolean {
     const pc = this.cfg.providers[p];
     if (!pc.enabled || pc.weight <= 0) return false;
+    if (this.missing.has(p)) return false;
     if (this.learned.disabled?.[p]) return false;
     if (this.coolingDown(p)) return false;
     const u = this.usage(p);
@@ -74,6 +77,10 @@ export class BudgetTracker {
       const prev = this.learned.tokenCeiling[p];
       this.learned.tokenCeiling[p] = prev ? Math.min(prev, used) : used;
     }
+  }
+
+  markMissing(p: ProviderId): void {
+    this.missing.add(p);
   }
 
   disable(p: ProviderId, reason: string): void {

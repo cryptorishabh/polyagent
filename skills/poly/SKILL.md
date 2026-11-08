@@ -15,8 +15,9 @@ You are the **lead**. Codex and Antigravity do most of the token-heavy work. You
 
 ## 0. Preflight (once per project)
 1. `polyagent --version`. If missing: `npm i -g polyagent` (or use `npx polyagent`).
-2. If there is no `polyagent.config.json`: `polyagent init`, then `polyagent doctor --refresh`. Show the user the tier→model table it prints and ask whether any model looks wrong for its tier. Any choice can be edited in the config.
-3. If the project has `CLAUDE.md` but no `AGENTS.md` / `GEMINI.md`: offer `polyagent sync-rules` so all three tools follow the same rules.
+2. `polyagent install --dry-run` lists which worker CLIs (codex, agy, gemini) are missing and the official command for each. If any are missing, ask the user which to install. Name each one, show its command, and pass on the note about Gemini CLI and personal Google accounts. Then run `polyagent install <ids> --yes` for exactly the ones they chose. Never install one they didn't pick. A CLI that can't be installed, or that they decline, is skipped; polyagent routes its work to the others.
+3. If there is no `polyagent.config.json`: `polyagent init`, then `polyagent doctor --refresh`. Show the user the tier→model table it prints and ask whether any model looks wrong for its tier. Any choice can be edited in the config.
+4. If the project has `CLAUDE.md` but no `AGENTS.md` / `GEMINI.md`: offer `polyagent sync-rules` so all three tools follow the same rules.
 
 ## 1. Plan the task graph
 Read only what you need to split the work well (structure, the files involved, how tests run). Then write `.polyagent/tasks/<short-name>.json`:

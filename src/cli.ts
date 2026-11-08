@@ -7,7 +7,12 @@ import { assertTopLevel } from './guard.ts';
 import { Ledger, loadLearned, saveLearned } from './ledger.ts';
 import { cleanRun, latestRunId, loadState, Runner, summarize } from './runner.ts';
 import { loadTasks, topoOrder } from './tasks.ts';
-import type { RunState } from './types.ts';
+import { installClis, planInstall } from './install.ts';
+import { resolveBinary } from './proc.ts';
+import { PROVIDERS, type ProviderId, type RunState } from './types.ts';
+
+/** Workers polyagent offers to install. Claude Code is the lead and is usually present already. */
+const DEFAULT_INSTALL: ProviderId[] = ['codex', 'agy', 'gemini'];
 import { excludeStateDir, git, gitOk, repoRoot } from './worktree.ts';
 
 const VERSION = '0.1.0';
@@ -16,7 +21,10 @@ const HELP = `polyagent ${VERSION} — Claude-led delegation across Claude, Code
 
 Usage: polyagent <command> [options]
 
-  init                     Create ${CONFIG_FILE} and exclude .polyagent/ from git
+  init                     Create ${CONFIG_FILE}, exclude .polyagent/ from git, offer to install missing CLIs
+  install [codex agy gemini claude] [--yes] [--dry-run]
+                           Install missing CLIs with their official installers (asks first;
+                           anything that can't be installed is skipped)
   doctor [--refresh|--force-models] [--reset]
                            Check CLIs and sign-in, discover models, write tier→model maps;
                            --reset re-enables providers disabled after an account error
@@ -77,6 +85,18 @@ async function main(argv: string[]): Promise<number> {
     console.log(VERSION);
     return 0;
   }
+  if (cmd === 'install') {
+    // Works outside a git repo too: installing tools is machine-wide.
+    const yes = flag(args, '--yes') || flag(args, '-y');
+    const dryRun = flag(args, '--dry-run');
+    const ids = args.filter((a) => (PROVIDERS as readonly string[]).includes(a)) as ProviderId[];
+    const unknown = args.filter((a) => !(PROVIDERS as readonly string[]).includes(a));
+    if (unknown.length) throw new Error(`unknown provider(s): ${unknown.join(', ')} (choose from ${PROVIDERS.join(', ')})`);
+    const reports = await installClis(ids.length ? ids : DEFAULT_INSTALL, { yes, dryRun, interactive: !!process.stdin.isTTY });
+    print(reports);
+    return reports.some((r) => r.result === 'failed') ? 1 : 0;
+  }
+
   const repo = repoRoot(process.cwd());
 
   switch (cmd) {
@@ -86,8 +106,15 @@ async function main(argv: string[]): Promise<number> {
       if (existsSync(f)) console.log(`${CONFIG_FILE} already exists; left unchanged.`);
       else {
         saveConfig(repo, defaultConfig());
-        console.log(`wrote ${CONFIG_FILE}. Next: polyagent doctor --refresh`);
+        console.log(`wrote ${CONFIG_FILE}.`);
       }
+      const missing = planInstall(DEFAULT_INSTALL, (b) => resolveBinary(b)).filter((p) => p.state !== 'installed');
+      if (missing.length) {
+        console.log(`\nMissing CLIs: ${missing.map((m) => m.provider).join(', ')}.`);
+        if (process.stdin.isTTY) await installClis(missing.map((m) => m.provider), { yes: false, dryRun: false, interactive: true });
+        else console.log('Install them with: polyagent install (asks before each one), or skip; polyagent works with whatever you have.');
+      }
+      console.log('\nNext: polyagent doctor --refresh');
       return 0;
     }
     case 'doctor': {

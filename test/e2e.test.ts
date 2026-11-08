@@ -175,6 +175,20 @@ describe('e2e with fake CLIs', { concurrency: false }, () => {
     assert.equal(bad.ok, false);
   });
 
+  it('a CLI that is not installed is never picked and costs no attempts', async () => {
+    const repo = gitRepo();
+    const { log } = fakeEnv({ '*': 'ok' });
+    const cfg = testConfig((c) => (c.providers.gemini.weight = 100));
+    const r = Runner.create(repo, cfg, tasksFile([task('a', { kind: 'docs' }), task('b', { kind: 'docs' })]), join(repo, 'tasks.json'), {
+      adapters: fakeAdapters(),
+      binaries: { ...fakeBinaries(), gemini: join(repo, 'no-such-gemini.exe') },
+      log: () => {},
+    });
+    const s = await r.run();
+    assert.ok(Object.values(s.tasks).every((t) => t.status === 'passed' && t.attempts.length === 1));
+    assert.equal(calls(log).filter((c) => c.provider === 'gemini').length, 0);
+  });
+
   it('flags files changed outside the task scope', async () => {
     const repo = gitRepo();
     fakeEnv({ '*': 'ok' });

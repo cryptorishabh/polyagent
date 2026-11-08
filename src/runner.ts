@@ -97,6 +97,13 @@ export class Runner {
     this.router = new Router(cfg, this.budget, this.stats);
     this.adapters = opts.adapters ?? ADAPTERS;
     this.shimDir = ensureShims(repo);
+    // A CLI that isn't installed is never picked, so it can't use up a task's attempts.
+    for (const p of Object.keys(cfg.providers) as ProviderId[]) {
+      if (cfg.providers[p].enabled && !this.bin(p)) {
+        this.budget.markMissing(p);
+        this.log(`[setup] ${p}: ${this.adapters[p].binary} is not installed, so it is skipped this run (its share goes to the others). Add it with: polyagent install ${p}`);
+      }
+    }
     this.byId = new Map(tf.tasks.map((t) => [t.id, t]));
     for (const ts of Object.values(state.tasks)) {
       const prior = ts.attempts.at(-1);

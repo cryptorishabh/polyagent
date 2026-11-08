@@ -7,11 +7,14 @@
                      │  writes tasks.json, reviews summaries, merges
                      ▼
                polyagent run ──► budget · tier→model · recursion lock · timeouts
+                     │  routes each task to whichever CLI fits it best
            ┌─────────┼──────────┬────────────┐
            ▼         ▼          ▼            ▼
-        codex      agy       gemini     (claude -p, optional)
-      worktree   worktree   worktree
+        task A     task B     task C       task D      one git worktree + branch per TASK
+        (codex)    (agy)      (codex)      (agy)       (not per tool), so tools never collide
            └──── tests run by polyagent, not by an LLM ────┘
+                     ▼
+               Claude reviews → polyagent merge
 ```
 
 ## Why
@@ -38,7 +41,47 @@ Requirements: Node ≥ 22.6, git, and whichever CLIs you subscribe to, each sign
 | Google AI (fallback) | [Gemini CLI](https://github.com/google-gemini/gemini-cli) | `GEMINI_API_KEY`, or a workspace/paid tier* |
 | Claude | [Claude Code](https://claude.com/claude-code) | the lead, in your session |
 
-\* Google has ended Gemini CLI sign-in for personal Google accounts ("no longer supported for Gemini Code Assist for individuals"). On a personal Google AI plan, use `agy`. If polyagent sees that refusal, it disables Gemini CLI after one attempt and sends the work elsewhere; `polyagent doctor --reset` re-enables it.
+\* See [agy vs Gemini CLI](#agy-vs-gemini-cli) below.
+
+You don't need every tool. polyagent works with any mix you have, even just one.
+
+**polyagent can install them for you.** `polyagent init` (or `polyagent install` at any time) checks which CLIs are missing, shows each one's **official** install command, and asks yes/no for each:
+
+| CLI | Windows | macOS / Linux |
+|---|---|---|
+| Codex | `npm install -g @openai/codex` | same |
+| agy | `winget install --id Google.AntigravityCLI --exact` | `curl -fsSL https://antigravity.google/cli/install.sh \| bash` |
+| Gemini CLI | `npm install -g @google/gemini-cli` | same |
+| Claude Code | `npm install -g @anthropic-ai/claude-code` | same |
+
+```bash
+polyagent install --dry-run
+```
+
+```bash
+polyagent install codex agy
+```
+
+- Nothing is installed without your yes (a prompt, or `--yes` for scripts and CI).
+- If a CLI can't be installed here (for example, no `npm` or `winget`), or you say no, it is **skipped**: polyagent tells you, and its share of the work goes to the tools you do have.
+- After installing, sign in once (`codex login`, or run `agy` / `gemini` once), then run `polyagent doctor --refresh`.
+
+### agy vs Gemini CLI
+
+Both are from Google, but they are **separate programs**:
+
+| | `agy` (Antigravity CLI) | `gemini` (Gemini CLI) |
+|---|---|---|
+| Personal Google AI Pro/Ultra login | **works** | **refused**: Google has ended it for personal accounts ("no longer supported for Gemini Code Assist for individuals… migrate to Antigravity") |
+| Models | Gemini (Argon, Flash) plus Claude and GPT-OSS | Gemini only |
+| Still works with | your Google AI plan | a `GEMINI_API_KEY` or a company/Workspace Google account |
+
+**If Gemini CLI isn't available, polyagent handles it for you:**
+- **Not installed:** `init` / `install` offers to install it (with the warning above). If you skip it, or it can't be installed, it's never picked: its share goes to the other tools and no task attempts are used.
+- **Installed but your account is refused:** it is tried once (fails at sign-in, so no tokens are spent), switched off, and the task moves to another tool. Later runs skip it. `polyagent doctor` shows why; after fixing sign-in, `polyagent doctor --reset` turns it back on.
+- **Out of quota:** it cools down (using the "try again in …" time when given), and work continues on the other tools.
+
+The same rules apply to every provider, including Codex and agy.
 
 ```bash
 npm i -g polyagent
@@ -100,7 +143,8 @@ Models are discovered rather than hard-coded, so new releases need no code chang
 ## Commands
 
 ```
-polyagent init                       create config, exclude .polyagent/ from git
+polyagent init                       create config, exclude .polyagent/ from git, offer to install missing CLIs
+polyagent install [ids] [--yes|--dry-run]   install missing CLIs with official installers (asks first)
 polyagent doctor [--refresh]         check CLIs, discover models, write tier maps
 polyagent plan <tasks.json>          dry run: tiers, providers, models (no model calls)
 polyagent run <tasks.json>           run; prints a compact JSON summary

@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { ADAPTERS } from './adapters/index.ts';
+import { RECIPES } from './install.ts';
 import { buildTierMap, discoverAgy, discoverCodex, splitAgy } from './models.ts';
 import { resolveBinary, sh } from './proc.ts';
 import { PROVIDERS, type Config, type ProviderId, type TierMap } from './types.ts';
@@ -47,7 +48,8 @@ export function doctor(cfg: Config, cwd: string, refresh: false | 'fill' | 'forc
     const rep: ProviderReport = { id, enabled: pc.enabled, auth: 'unknown', models: [], tiers: pc.tiers, overflowTiers: pc.overflowTiers, problems: [] };
     const bin = resolveBinary(pc.binary ?? a.binary);
     if (!bin) {
-      rep.problems.push(`${a.binary} not found on PATH`);
+      const opt = RECIPES[id].options(process.platform)[0];
+      rep.problems.push(`${a.binary} not installed. Install: polyagent install ${id}${opt ? ` (runs: ${opt.display})` : ''}. Until then it is skipped.`);
       out.push(rep);
       continue;
     }
