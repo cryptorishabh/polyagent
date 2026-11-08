@@ -50,7 +50,7 @@ export function renderTui(s: Snapshot, o: TuiOpts): string {
   L.push('');
 
   L.push(k('bold', 'TOOLS') + k('dim', '   budget used in the current window'));
-  const bw = Math.max(10, Math.min(24, W - 80));
+  const bw = Math.max(10, Math.min(24, W - 90));
   for (const p of s.providers) L.push(providerLine(p, bw, k));
   L.push('');
 
@@ -72,6 +72,7 @@ export function renderTui(s: Snapshot, o: TuiOpts): string {
 
 function providerLine(p: ProviderRow, bw: number, k: (c: keyof typeof C, t: string) => string): string {
   const pct = `${Math.round(p.used * 100)}%`.padStart(4);
+  const left = `${Math.round(p.left * 100)}% left`.padStart(9);
   const color = p.used >= 0.85 ? 'red' : p.used >= 0.6 ? 'yellow' : 'green';
   const cap = p.maxTasks ? `${p.windowTasks}/${p.maxTasks} tasks` : `${p.windowTasks} tasks`;
   const state =
@@ -80,7 +81,7 @@ function providerLine(p: ProviderRow, bw: number, k: (c: keyof typeof C, t: stri
     : p.state === 'disabled' ? k('red', '✖ disabled: account refused (details: polyagent doctor)')
     : p.state === 'off' ? k('dim', '○ off')
     : k('dim', '○ idle');
-  return `  ${pad(p.id, 7)} ${k(color, bar(p.used, bw))} ${pct}  ${pad(cap, 13)} ${pad(`${fmtTokens(p.runTokens)} this run`, 15)} ${state}`;
+  return `  ${pad(p.id, 7)} ${k(color, bar(p.used, bw))} ${pct} ${left}  ${pad(cap, 13)} ${pad(`${fmtTokens(p.runTokens)} this run`, 15)} ${state}`;
 }
 
 /** Live terminal dashboard: redraws every second until Ctrl+C. */
