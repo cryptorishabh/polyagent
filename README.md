@@ -1,5 +1,7 @@
 # polyagent
 
+[![How it works](https://www.gitskins.com/api/badge/diagram?repo=cryptorishabh/polyagent)](https://www.gitskins.com/cryptorishabh/polyagent)
+
 **Use your Claude, ChatGPT (Codex) and Google AI (Antigravity / Gemini CLI) subscriptions together on one project.** Your lead agent plans, reviews and merges. Codex and Antigravity do the heavy work in parallel. Hard guards stop the waste that usually comes with multi-agent setups.
 
 ```
